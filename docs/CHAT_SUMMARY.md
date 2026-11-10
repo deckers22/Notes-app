@@ -78,7 +78,18 @@ Session 2 (backup and checklists):
 
 - The user tries the APK on a phone and reports problems; then picks the next idea.
 
+## To do (asked by the user, not built yet)
+
+- Sorting options for the notes list: most recently edited, size.
+- Show the number of words / the size of a note.
+
 ## Ideas not built
 
 - Cloud backup, reminders, labels/folders, home-screen widget, Dutch translation,
-  save-while-typing, drag-to-reorder checklist items.
+  save-while-typing, drag-to-reorder checklist items, a maximum note size (see below).
+
+## Known limits
+
+- No maximum note size is enforced. A note above roughly 2 MB of text (hidden: ~1.5 MB)
+  cannot be read back from the database; typing gets slow long before that. Offered a cap
+  of e.g. 100,000 characters; the user has not decided.
