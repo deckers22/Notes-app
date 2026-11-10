@@ -1,7 +1,7 @@
 # Chat summary
 
 Running summary of the conversation, kept lean so a new chat can pick up from here.
-Branch: `ccr-08fb97d1-3amr84`.
+Branch: `ccr-fa459b3f-faju4j` (continues the work from `ccr-08fb97d1-3amr84`).
 
 ## Request
 
@@ -37,10 +37,17 @@ pressing home; hide notes and lock/unlock them behind a PIN; open to other sugge
 
 - v1 implemented: list, editor, hidden notes, trash, settings (see `README.md`).
 - Unit tests for encryption and undo history in `app/src/test`.
-- The cloud session cannot reach `dl.google.com` (blocked by the environment's network
-  policy), so the Android SDK and AndroidX libraries cannot be downloaded there. The app is
-  compiled by GitHub Actions instead (`.github/workflows/build.yml`).
-- Not tested on a device or emulator yet.
+- Session 2: Google hosts are now reachable from the cloud session. With the Android SDK
+  (platform 35, build-tools 35.0.0) installed, `./gradlew testDebugUnitTest assembleDebug`
+  succeeds there without code changes: debug APK built, 15 unit tests pass.
+- Maven Central sometimes answers 429 (rate limit) in the cloud session; re-running the
+  build with `--max-workers=1` until the libraries are cached gets past it.
+- Still not tested on a device or emulator (the cloud session has no KVM, so no emulator).
+  The APK also comes out of GitHub Actions (`.github/workflows/build.yml`).
+
+## Next step
+
+- Open: the user chooses what to build next (see "Ideas not built").
 
 ## Ideas not built
 
