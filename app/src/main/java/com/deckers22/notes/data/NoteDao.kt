@@ -12,11 +12,18 @@ interface NoteDao {
     @Query("SELECT * FROM notes")
     fun observeAll(): Flow<List<Note>>
 
+    @Query("SELECT * FROM notes")
+    fun getAll(): List<Note>
+
     @Query("SELECT * FROM notes WHERE id = :id")
     fun get(id: String): Note?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun upsert(note: Note)
+
+    /** Runs as one transaction: either all notes are written or none. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun upsertAll(notes: List<Note>)
 
     @Query("UPDATE notes SET pinned = :pinned WHERE id = :id")
     fun setPinned(id: String, pinned: Boolean)

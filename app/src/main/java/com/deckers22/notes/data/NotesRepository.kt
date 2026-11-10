@@ -1,5 +1,7 @@
 package com.deckers22.notes.data
 
+import com.deckers22.notes.backup.BackupMerge
+import com.deckers22.notes.backup.ImportSummary
 import com.deckers22.notes.security.VaultManager
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -8,6 +10,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+class ReadableNotes(val notes: List<Note>, val unreadableHidden: Int)
 
 class NotesRepository(
     private val dao: NoteDao,
@@ -72,6 +76,27 @@ class NotesRepository(
         // If the vault got locked in the meantime, seal() throws and the note stays as it was.
         runCatching { seal(readable.copy(hidden = hidden, pinned = false)) }.onSuccess(dao::upsert)
     }
+
+    // ---- Backup ----
+
+    /** Every note that can be read right now; hidden notes only while the vault is unlocked. */
+    suspend fun readableNotes(): ReadableNotes = withContext(dbThread) {
+        val stored = dao.getAll()
+        val readable = stored.mapNotNull(::open)
+        ReadableNotes(readable, unreadableHidden = stored.size - readable.size)
+    }
+
+    /**
+     * Merges notes from a backup into the database; see [BackupMerge] for the rules. Throws
+     * [com.deckers22.notes.security.VaultLockedException] (and writes nothing) when hidden
+     * notes have to be imported while the vault is locked.
+     */
+    suspend fun importNotes(incoming: List<Note>, includeHidden: Boolean): ImportSummary =
+        withContext(dbThread) {
+            val plan = BackupMerge.plan(incoming, includeHidden) { id -> dao.get(id)?.updatedAt }
+            dao.upsertAll(plan.toWrite.map(::seal))
+            plan.summary
+        }
 
     private fun write(block: () -> Unit) {
         appScope.launch(dbThread) { block() }

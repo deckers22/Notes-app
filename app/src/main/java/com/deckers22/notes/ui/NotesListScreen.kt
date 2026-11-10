@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.deckers22.notes.data.Checklist
 import com.deckers22.notes.data.Note
 import com.deckers22.notes.ui.theme.NoteColors
 
@@ -230,6 +231,7 @@ fun NoteCard(
     footer: (@Composable () -> Unit)? = null,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
+    val body = if (note.checklist) Checklist.preview(note.content) else note.content.trim()
     val container = NoteColors.background(note.color, MaterialTheme.colorScheme.surfaceContainerHigh)
     Box(modifier) {
         Card(
@@ -248,7 +250,7 @@ fun NoteCard(
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
-                        text = note.title.ifBlank { if (note.content.isBlank()) "Empty note" else "" },
+                        text = note.title.ifBlank { if (body.isBlank()) "Empty note" else "" },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 2,
@@ -263,9 +265,9 @@ fun NoteCard(
                         )
                     }
                 }
-                if (note.content.isNotBlank()) {
+                if (body.isNotBlank()) {
                     Text(
-                        text = note.content.trim(),
+                        text = body,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 8,
                         overflow = TextOverflow.Ellipsis,

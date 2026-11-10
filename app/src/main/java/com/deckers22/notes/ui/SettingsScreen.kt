@@ -132,6 +132,10 @@ fun SettingsScreen(vm: NotesViewModel, onBack: () -> Unit) {
             }
 
             HorizontalDivider()
+            SectionTitle("Backup")
+            BackupSettings(vm = vm, showMessage = ::message)
+
+            HorizontalDivider()
             SectionTitle("Saving")
             ListItem(
                 headlineContent = { Text("Notes are saved automatically") },

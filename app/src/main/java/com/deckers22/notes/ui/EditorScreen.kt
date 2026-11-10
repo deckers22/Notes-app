@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.deckers22.notes.data.Checklist
 import com.deckers22.notes.ui.theme.NoteColors
 import java.text.DateFormat
 import java.util.Date
@@ -121,6 +122,10 @@ fun EditorScreen(vm: NotesViewModel, noteId: String, startHidden: Boolean, onClo
                                 onClick = { menuOpen = false; vm.setEditorPinned(!editor.pinned) },
                             )
                             DropdownMenuItem(
+                                text = { Text(if (editor.checklist) "Turn into text" else "Turn into checklist") },
+                                onClick = { menuOpen = false; vm.setEditorChecklist(!editor.checklist) },
+                            )
+                            DropdownMenuItem(
                                 text = { Text("Colour") },
                                 onClick = { menuOpen = false; colorPickerOpen = true },
                             )
@@ -142,7 +147,8 @@ fun EditorScreen(vm: NotesViewModel, noteId: String, startHidden: Boolean, onClo
         if (editor != null) {
             val contentFocus = remember { FocusRequester() }
             LaunchedEffect(editor.id) {
-                if (!editor.persisted) contentFocus.requestFocus() // new note: start typing right away
+                // New note: start typing right away. (A checklist focuses its own first item.)
+                if (!editor.persisted && !editor.checklist) contentFocus.requestFocus()
             }
             Column(Modifier.fillMaxSize().padding(padding)) {
                 TextField(
@@ -158,15 +164,23 @@ fun EditorScreen(vm: NotesViewModel, noteId: String, startHidden: Boolean, onClo
                     colors = transparentTextFieldColors(),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                TextField(
-                    value = editor.content,
-                    onValueChange = vm::onContentChange,
-                    placeholder = { Text("Note") },
-                    textStyle = MaterialTheme.typography.bodyLarge,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    colors = transparentTextFieldColors(),
-                    modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(contentFocus),
-                )
+                if (editor.checklist) {
+                    ChecklistEditor(
+                        items = Checklist.parse(editor.content.text),
+                        onChange = vm::onChecklistChange,
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                    )
+                } else {
+                    TextField(
+                        value = editor.content,
+                        onValueChange = vm::onContentChange,
+                        placeholder = { Text("Note") },
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        colors = transparentTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(contentFocus),
+                    )
+                }
                 Text(
                     text = saveStatus(editor),
                     style = MaterialTheme.typography.labelMedium,
